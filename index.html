@@ -1,0 +1,1044 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI Interview Simulator</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    /* ── Reset & tokens ─────────────────────────────────────────────────────── */
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      --bg: #0d0f1a;
+      --surface: #141728;
+      --card: #1b1f35;
+      --border: #272c48;
+      --accent: #6c63ff;
+      --accent2: #a78bfa;
+      --success: #34d399;
+      --warn: #fbbf24;
+      --danger: #f87171;
+      --text: #e2e8f0;
+      --muted: #64748b;
+      --radius: 14px;
+      --shadow: 0 8px 32px rgba(0, 0, 0, .45);
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    /* ── Header ─────────────────────────────────────────────────────────────── */
+    header {
+      width: 100%;
+      padding: 20px 40px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: rgba(20, 23, 40, .85);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    header .logo {
+      width: 36px;
+      height: 36px;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+    }
+
+    header h1 {
+      font-size: 1.1rem;
+      font-weight: 600;
+      letter-spacing: -.3px;
+    }
+
+    header span {
+      color: var(--muted);
+      font-size: .85rem;
+      margin-left: auto;
+    }
+
+    /* ── Main layout ────────────────────────────────────────────────────────── */
+    main {
+      width: 100%;
+      max-width: 780px;
+      padding: 40px 20px 80px;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+
+    /* ── Cards ──────────────────────────────────────────────────────────────── */
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 28px;
+      box-shadow: var(--shadow);
+      animation: fadeUp .35s ease both;
+    }
+
+    @keyframes fadeUp {
+      from {
+        opacity: 0;
+        transform: translateY(16px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .card-title {
+      font-size: .7rem;
+      font-weight: 600;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 18px;
+    }
+
+    /* ── Form elements ──────────────────────────────────────────────────────── */
+    label {
+      font-size: .85rem;
+      color: var(--muted);
+      display: block;
+      margin-bottom: 6px;
+    }
+
+    input[type="text"],
+    textarea,
+    select {
+      width: 100%;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      font-family: inherit;
+      font-size: .95rem;
+      padding: 11px 14px;
+      outline: none;
+      transition: border-color .2s, box-shadow .2s;
+      margin-bottom: 16px;
+    }
+
+    input[type="text"]:focus,
+    textarea:focus,
+    select:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(108, 99, 255, .18);
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 110px;
+      line-height: 1.6;
+    }
+
+    /* ── Mix selector ───────────────────────────────────────────────────────── */
+    .mix-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+
+    .mix-option {
+      cursor: pointer;
+      background: var(--surface);
+      border: 2px solid var(--border);
+      border-radius: 10px;
+      padding: 14px 10px;
+      text-align: center;
+      transition: border-color .2s, background .2s, transform .15s;
+      user-select: none;
+    }
+
+    .mix-option:hover {
+      border-color: var(--accent);
+      transform: translateY(-2px);
+    }
+
+    .mix-option.active {
+      border-color: var(--accent);
+      background: rgba(108, 99, 255, .12);
+    }
+
+    .mix-option .nums {
+      font-size: 1.05rem;
+      font-weight: 700;
+    }
+
+    .mix-option .desc {
+      font-size: .72rem;
+      color: var(--muted);
+      margin-top: 4px;
+    }
+
+    /* ── Custom mix inputs ──────────────────────────────────────────────────── */
+    .custom-mix-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 16px;
+      animation: fadeUp .25s ease both;
+    }
+
+    .custom-mix-field label {
+      font-size: .72rem;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      margin-bottom: 5px;
+    }
+
+    input[type="number"].mix-input {
+      width: 100%;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      font-family: inherit;
+      font-size: .95rem;
+      padding: 11px 14px;
+      outline: none;
+      transition: border-color .2s, box-shadow .2s;
+      -moz-appearance: textfield;
+    }
+
+    input[type="number"].mix-input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(108, 99, 255, .18);
+    }
+
+    .mix-total-hint {
+      font-size: .72rem;
+      color: var(--muted);
+      margin: -8px 0 16px;
+    }
+
+    /* ── Level selector ─────────────────────────────────────────────────────── */
+    .level-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+
+    .level-option {
+      cursor: pointer;
+      background: var(--surface);
+      border: 2px solid var(--border);
+      border-radius: 10px;
+      padding: 12px 6px;
+      text-align: center;
+      transition: border-color .2s, background .2s, transform .15s;
+      user-select: none;
+    }
+
+    .level-option:hover {
+      border-color: var(--accent);
+      transform: translateY(-2px);
+    }
+
+    .level-option.active {
+      border-color: var(--accent);
+      background: rgba(108, 99, 255, .12);
+    }
+
+    .level-option .label {
+      font-size: .78rem;
+      font-weight: 700;
+    }
+
+    @media (max-width: 500px) {
+      .level-grid {
+        grid-template-columns: repeat(3, 1fr);
+      }
+    }
+
+    /* ── Buttons ────────────────────────────────────────────────────────────── */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      font-family: inherit;
+      font-size: .9rem;
+      font-weight: 600;
+      border: none;
+      border-radius: 9px;
+      padding: 12px 24px;
+      cursor: pointer;
+      transition: opacity .2s, transform .15s, box-shadow .2s;
+    }
+
+    .btn:hover {
+      opacity: .88;
+      transform: translateY(-1px);
+    }
+
+    .btn:active {
+      transform: scale(.97);
+    }
+
+    .btn:disabled {
+      opacity: .4;
+      pointer-events: none;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--accent), #857bff);
+      color: #fff;
+      box-shadow: 0 4px 20px rgba(108, 99, 255, .4);
+      width: 100%;
+    }
+
+    .btn-ghost {
+      background: var(--surface);
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+
+    /* ── Progress bar ───────────────────────────────────────────────────────── */
+    .progress-wrap {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    .progress-bar {
+      flex: 1;
+      height: 6px;
+      background: var(--surface);
+      border-radius: 99px;
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--accent), var(--accent2));
+      border-radius: 99px;
+      transition: width .5s cubic-bezier(.4, 0, .2, 1);
+    }
+
+    .progress-label {
+      font-size: .8rem;
+      color: var(--muted);
+      white-space: nowrap;
+    }
+
+    /* ── Question card ──────────────────────────────────────────────────────── */
+    .question-text {
+      font-size: 1.15rem;
+      line-height: 1.65;
+      font-weight: 500;
+      margin-bottom: 20px;
+    }
+
+    .tags-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 7px;
+      margin-bottom: 20px;
+    }
+
+    .tag {
+      font-size: .72rem;
+      font-weight: 600;
+      padding: 4px 10px;
+      border-radius: 99px;
+      letter-spacing: .04em;
+    }
+
+    .tag-cat {
+      background: rgba(108, 99, 255, .18);
+      color: var(--accent2);
+    }
+
+    .tag-topic {
+      background: rgba(52, 211, 153, .12);
+      color: var(--success);
+    }
+
+    .tag-diff {
+      background: rgba(251, 191, 36, .12);
+      color: var(--warn);
+    }
+
+    /* ── Review card ────────────────────────────────────────────────────────── */
+    .badge-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 4px;
+    }
+
+    .level-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(52, 211, 153, .12);
+      border: 1px solid rgba(52, 211, 153, .35);
+      border-radius: 99px;
+      padding: 6px 18px;
+      font-size: .95rem;
+      font-weight: 700;
+      color: var(--success);
+    }
+
+    /* ── Review layout: each section is its own box ───────────────────────────── */
+    #panel-review {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .review-section {
+      margin-bottom: 0;
+    }
+
+    .review-section h3 {
+      font-size: .78rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: .1em;
+      margin-bottom: 10px;
+    }
+
+    .review-section.str h3 {
+      color: var(--success);
+    }
+
+    .review-section.weak h3 {
+      color: var(--danger);
+    }
+
+    .review-section.gaps h3 {
+      color: var(--warn);
+    }
+
+    .review-section ul {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .review-section li {
+      display: flex;
+      gap: 10px;
+      padding: 10px 0px;
+      font-size: .88rem;
+      line-height: 1.5;
+    }
+
+    .review-section li:not(:first-child) {
+      border-top: 1px solid var(--border);
+    }
+
+    .str li::before {
+      content: '✓';
+      color: var(--success);
+    }
+
+    .weak li::before {
+      content: '✗';
+      color: var(--danger);
+    }
+
+    .gaps li::before {
+      content: '→';
+      color: var(--warn);
+    }
+
+    .summary-text {
+      font-size: .93rem;
+      line-height: 1.65;
+      color: var(--text);
+      background: var(--surface);
+      border-left: 3px solid var(--accent);
+      border-radius: 0 8px 8px 0;
+      padding: 14px 16px;
+      margin-bottom: 20px;
+    }
+
+    /* ── Toast ──────────────────────────────────────────────────────────────── */
+    #toast {
+      position: fixed;
+      bottom: 28px;
+      left: 50%;
+      transform: translateX(-50%) translateY(80px);
+      background: #1e2235;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px 22px;
+      font-size: .87rem;
+      box-shadow: var(--shadow);
+      transition: transform .35s cubic-bezier(.4, 0, .2, 1), opacity .35s;
+      opacity: 0;
+      z-index: 999;
+    }
+
+    #toast.show {
+      transform: translateX(-50%) translateY(0);
+      opacity: 1;
+    }
+
+    #toast.err {
+      border-color: var(--danger);
+      color: var(--danger);
+    }
+
+    /* ── Spinner ────────────────────────────────────────────────────────────── */
+    .spinner {
+      width: 18px;
+      height: 18px;
+      border: 2px solid rgba(255, 255, 255, .2);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin .7s linear infinite;
+      display: none;
+    }
+
+    .loading .spinner {
+      display: inline-block;
+    }
+
+    .loading .btn-text {
+      display: none;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    /* ── History sidebar ────────────────────────────────────────────────────── */
+    .history-pill {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px 14px;
+      font-size: .82rem;
+      cursor: default;
+    }
+
+    .dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+    }
+
+    .dot.complete {
+      background: var(--success);
+    }
+
+    .dot.in_progress {
+      background: var(--warn);
+    }
+
+    /* ── Hidden ─────────────────────────────────────────────────────────────── */
+    .hidden {
+      display: none !important;
+    }
+
+    /* ── Responsive ─────────────────────────────────────────────────────────── */
+    @media (max-width: 500px) {
+      .mix-grid {
+        grid-template-columns: 1fr 1fr;
+      }
+
+      header {
+        padding: 16px 20px;
+      }
+
+      main {
+        padding: 24px 14px 60px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- ── Header ──────────────────────────────────────────────────────────────── -->
+  <header>
+    <div class="logo">🤖</div>
+    <h1>AI Interview Simulator</h1>
+    <span id="hdr-status">Ready</span>
+  </header>
+
+  <!-- ── Main ────────────────────────────────────────────────────────────────── -->
+  <main>
+
+    <!-- SETUP PANEL -->
+    <section id="panel-setup" class="card">
+      <p class="card-title">New Interview Session</p>
+
+      <label for="user-id">Your User ID <small style="color:var(--muted)">(auto-generated)</small></label>
+      <input type="text" id="user-id" placeholder="e.g. 550e8400-e29b-41d4-a716-446655440000" />
+
+      <label for="field-input">Job Field / Role</label>
+      <input type="text" id="field-input" placeholder="e.g. Backend Developer, UX Designer, Data Scientist" />
+
+      <label>Question Mix</label>
+      <div class="mix-grid">
+        <div class="mix-option" data-tech="3" data-soft="2">
+          <div class="nums">3 + 2</div>
+          <div class="desc">Tech · Soft</div>
+        </div>
+        <div class="mix-option active" data-tech="5" data-soft="3">
+          <div class="nums">5 + 3</div>
+          <div class="desc">Tech · Soft</div>
+        </div>
+        <div class="mix-option" data-tech="3" data-soft="6">
+          <div class="nums">3 + 6</div>
+          <div class="desc">Tech · Soft</div>
+        </div>
+        <div class="mix-option" id="mix-custom" data-custom="true">
+          <div class="nums">✎ Custom</div>
+          <div class="desc">Set your own</div>
+        </div>
+      </div>
+
+      <div class="custom-mix-row hidden" id="custom-mix-row">
+        <div class="custom-mix-field">
+          <label for="custom-tech">Technical</label>
+          <input type="number" class="mix-input" id="custom-tech" min="0" max="20" value="5" />
+        </div>
+        <div class="custom-mix-field">
+          <label for="custom-soft">Soft Skill</label>
+          <input type="number" class="mix-input" id="custom-soft" min="0" max="20" value="3" />
+        </div>
+      </div>
+      <p class="mix-total-hint hidden" id="custom-mix-hint"></p>
+
+      <label>Experience Level</label>
+      <div class="level-grid">
+        <div class="level-option" data-level="entry">
+          <div class="label">Entry</div>
+        </div>
+        <div class="level-option" data-level="junior">
+          <div class="label">Junior</div>
+        </div>
+        <div class="level-option active" data-level="mid">
+          <div class="label">Mid</div>
+        </div>
+        <div class="level-option" data-level="senior">
+          <div class="label">Senior</div>
+        </div>
+        <div class="level-option" data-level="manager_lead">
+          <div class="label">Mgr/Lead</div>
+        </div>
+      </div>
+
+      <button class="btn btn-primary" id="btn-start">
+        <div class="spinner"></div>
+        <span class="btn-text">▶ Start Interview</span>
+      </button>
+    </section>
+
+    <!-- INTERVIEW PANEL -->
+    <section id="panel-interview" class="card hidden">
+      <p class="card-title">Interview in Progress</p>
+
+      <!-- progress -->
+      <div class="progress-wrap">
+        <div class="progress-bar">
+          <div class="progress-fill" id="prog-fill" style="width:0%"></div>
+        </div>
+        <span class="progress-label" id="prog-label">0 / 0</span>
+      </div>
+
+      <!-- question -->
+      <div class="tags-row" id="q-tags"></div>
+      <p class="question-text" id="q-text">Loading question…</p>
+
+      <label for="answer-input">Your Answer</label>
+      <textarea id="answer-input" placeholder="Type your answer here…"></textarea>
+
+      <button class="btn btn-primary" id="btn-answer">
+        <div class="spinner"></div>
+        <span class="btn-text">Submit Answer →</span>
+      </button>
+    </section>
+
+    <!-- REVIEW PANEL -->
+    <section id="panel-review" class="hidden">
+
+      <div class="card">
+        <p class="card-title">Session Complete — Performance Review</p>
+        <div class="badge-row">
+          <div class="level-badge" id="level-badge">🎯 —</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <p class="card-title">Summary</p>
+        <p class="summary-text" id="review-summary" style="margin-bottom:0"></p>
+      </div>
+
+      <div class="card review-section str">
+        <h3>💪 Strengths</h3>
+        <ul id="list-strengths"></ul>
+      </div>
+
+      <div class="card review-section weak">
+        <h3>⚠ Weaknesses</h3>
+        <ul id="list-weaknesses"></ul>
+      </div>
+
+      <div class="card review-section gaps">
+        <h3>🎯 Level-Up Gaps</h3>
+        <ul id="list-gaps"></ul>
+      </div>
+
+      <button class="btn btn-ghost" id="btn-restart" style="width:100%">
+        ↩ Start New Interview
+      </button>
+    </section>
+
+    <!-- TAG HISTORY PANEL (debug) -->
+    <section id="panel-tags" class="card hidden">
+      <p class="card-title">Tag History</p>
+      <div id="tag-list" class="tags-row" style="flex-wrap:wrap"></div>
+      <p id="tag-count" style="font-size:.78rem;color:var(--muted);margin-top:4px"></p>
+    </section>
+
+  </main>
+
+  <!-- Toast -->
+  <div id="toast"></div>
+
+  <script>
+    // ── Config ─────────────────────────────────────────────────────────────────
+    const API = 'http://localhost:8000';
+
+    // ── State ──────────────────────────────────────────────────────────────────
+    let state = {
+      userId: null,
+      sessionId: null,
+      turnId: 1,
+      turnsDone: 0,
+      totalQuestions: 0,
+      selectedMix: { technical: 5, soft: 3 },
+      selectedLevel: 'mid',
+    };
+
+    const LEVEL_LABELS = {
+      entry: 'Entry',
+      junior: 'Junior',
+      mid: 'Mid',
+      senior: 'Senior',
+      manager_lead: 'Manager/Lead',
+    };
+
+    // ── DOM refs ───────────────────────────────────────────────────────────────
+    const $ = id => document.getElementById(id);
+    const panels = {
+      setup: $('panel-setup'),
+      interview: $('panel-interview'),
+      review: $('panel-review'),
+      tags: $('panel-tags'),
+    };
+
+    // ── Init ───────────────────────────────────────────────────────────────────
+    $('user-id').value = generateUUID();
+
+    // Mix option selection (presets + custom)
+    document.querySelectorAll('.mix-option').forEach(el => {
+      el.addEventListener('click', () => {
+        document.querySelectorAll('.mix-option').forEach(x => x.classList.remove('active'));
+        el.classList.add('active');
+
+        if (el.dataset.custom === 'true') {
+          $('custom-mix-row').classList.remove('hidden');
+          $('custom-mix-hint').classList.remove('hidden');
+          syncCustomMix();
+        } else {
+          $('custom-mix-row').classList.add('hidden');
+          $('custom-mix-hint').classList.add('hidden');
+          state.selectedMix = { technical: +el.dataset.tech, soft: +el.dataset.soft };
+        }
+      });
+    });
+
+    // Live-update state + hint as the user types custom counts
+    ['custom-tech', 'custom-soft'].forEach(id => {
+      $(id).addEventListener('input', syncCustomMix);
+    });
+
+    function syncCustomMix() {
+      const tech = clampMixInput($('custom-tech'));
+      const soft = clampMixInput($('custom-soft'));
+      state.selectedMix = { technical: tech, soft: soft };
+
+      const hint = $('custom-mix-hint');
+      const total = tech + soft;
+      if (total === 0) {
+        hint.textContent = 'Pick at least one question.';
+        hint.style.color = 'var(--danger)';
+      } else {
+        hint.textContent = `${total} question${total === 1 ? '' : 's'} total`;
+        hint.style.color = 'var(--muted)';
+      }
+    }
+
+    function clampMixInput(input) {
+      const min = +input.min || 0;
+      const max = +input.max || 20;
+      let val = parseInt(input.value, 10);
+      if (isNaN(val)) val = min;
+      val = Math.max(min, Math.min(max, val));
+      input.value = val;
+      return val;
+    }
+
+    // Level selection
+    document.querySelectorAll('.level-option').forEach(el => {
+      el.addEventListener('click', () => {
+        document.querySelectorAll('.level-option').forEach(x => x.classList.remove('active'));
+        el.classList.add('active');
+        state.selectedLevel = el.dataset.level;
+      });
+    });
+
+    // ── Start ──────────────────────────────────────────────────────────────────
+    $('btn-start').addEventListener('click', async () => {
+      const userId = $('user-id').value.trim();
+      const field = $('field-input').value.trim();
+
+      if (!userId) return toast('Please enter a User ID.', true);
+      if (!field) return toast('Please enter a job field.', true);
+
+      const totalMix = state.selectedMix.technical + state.selectedMix.soft;
+      if (totalMix === 0) return toast('Pick at least one question.', true);
+
+      state.userId = userId;
+      setLoading('btn-start', true);
+
+      try {
+        const res = await api('/start', 'POST', {
+          user_id: userId,
+          field,
+          question_mix: { technical: state.selectedMix.technical, soft: state.selectedMix.soft },
+          level: state.selectedLevel,
+        });
+
+        state.sessionId = res.session_id;
+        state.turnId = res.turn_id;
+        state.turnsDone = 0;
+        state.totalQuestions = res.total_questions;
+
+        renderQuestion(res);
+        show('interview');
+        $('hdr-status').textContent = `Session: ${res.session_id.slice(0, 8)}…`;
+        $('answer-input').focus();
+
+        // Load tag history in background
+        refreshTags(userId);
+
+      } catch (e) {
+        toast(e.message, true);
+      } finally {
+        setLoading('btn-start', false);
+      }
+    });
+
+    // ── Submit answer ──────────────────────────────────────────────────────────
+    $('btn-answer').addEventListener('click', async () => {
+      const answer = $('answer-input').value.trim();
+      if (!answer) return toast('Please write an answer first.', true);
+
+      setLoading('btn-answer', true);
+
+      try {
+        const res = await api('/answer', 'POST', {
+          session_id: state.sessionId,
+          answer,
+        });
+
+        state.turnsDone = res.turns_done;
+        $('answer-input').value = '';
+
+        if (res.status === 'complete') {
+          renderReview(res.review);
+          refreshTags(state.userId);
+          show('review');
+          $('hdr-status').textContent = 'Completed ✓';
+
+        } else {
+          renderQuestion(res.next_question);
+          $('answer-input').focus();
+        }
+
+      } catch (e) {
+        toast(e.message, true);
+      } finally {
+        setLoading('btn-answer', false);
+      }
+    });
+
+    // allow Ctrl+Enter to submit answer
+    $('answer-input').addEventListener('keydown', e => {
+      if (e.key === 'Enter' && e.ctrlKey) $('btn-answer').click();
+    });
+
+    // ── Restart ────────────────────────────────────────────────────────────────
+    $('btn-restart').addEventListener('click', () => {
+      show('setup');
+      $('hdr-status').textContent = 'Ready';
+      $('answer-input').value = '';
+    });
+
+    // ── Render helpers ─────────────────────────────────────────────────────────
+    function renderQuestion(q) {
+      $('q-text').textContent = q.question;
+
+      const tagsRow = $('q-tags');
+      tagsRow.innerHTML = '';
+
+      // category tag
+      addTag(tagsRow, q.category === 'technical' ? '⚙ Technical' : '💬 Soft Skill', 'tag-cat');
+      // difficulty tag
+      addTag(tagsRow, q.difficulty.charAt(0).toUpperCase() + q.difficulty.slice(1), 'tag-diff');
+      // topic tags
+      (q.tags || []).forEach(t => addTag(tagsRow, t, 'tag-topic'));
+
+      // progress
+      const done = q.turns_done ?? state.turnsDone;
+      const total = q.total_questions ?? state.totalQuestions;
+      const pct = total > 0 ? Math.round((done / total) * 100) : 0;
+      $('prog-fill').style.width = pct + '%';
+      $('prog-label').textContent = `${done} / ${total}`;
+    }
+
+    function renderReview(review) {
+      if (!review) return;
+      $('level-badge').textContent = `🎯 Target: ${LEVEL_LABELS[state.selectedLevel] ?? state.selectedLevel}`;
+      $('review-summary').textContent = review.summary ?? '';
+      fillList('list-strengths', review.strengths ?? []);
+      fillList('list-weaknesses', review.weaknesses ?? []);
+      fillList('list-gaps', review.level_up_gaps ?? []);
+      // show full progress
+      $('prog-fill').style.width = '100%';
+      $('prog-label').textContent = `${state.totalQuestions} / ${state.totalQuestions}`;
+    }
+
+    function fillList(id, items) {
+      const ul = $(id);
+      ul.innerHTML = '';
+      items.forEach(text => {
+        const li = document.createElement('li');
+        li.textContent = text;
+        ul.appendChild(li);
+      });
+    }
+
+    function addTag(container, text, cls) {
+      const span = document.createElement('span');
+      span.className = `tag ${cls}`;
+      span.textContent = text;
+      container.appendChild(span);
+    }
+
+    // ── Tag history ────────────────────────────────────────────────────────────
+    async function refreshTags(userId) {
+      try {
+        const data = await api(`/debug/tags/${userId}/full`, 'GET');
+        const panel = $('panel-tags');
+        const tagList = $('tag-list');
+        tagList.innerHTML = '';
+        (data.tags || []).forEach(t => addTag(tagList, t, 'tag-topic'));
+        $('tag-count').textContent = `${data.total} unique tags across all sessions`;
+        panel.classList.remove('hidden');
+      } catch (_) { /* silently ignore */ }
+    }
+
+    // ── Panel switcher ─────────────────────────────────────────────────────────
+    function show(name) {
+      Object.entries(panels).forEach(([k, el]) => {
+        if (k === 'tags') return;    // tags panel is shown independently
+        el.classList.toggle('hidden', k !== name);
+      });
+    }
+
+    // ── Loading state ──────────────────────────────────────────────────────────
+    function setLoading(id, on) {
+      const btn = $(id);
+      btn.classList.toggle('loading', on);
+      btn.disabled = on;
+    }
+
+    // ── Toast ──────────────────────────────────────────────────────────────────
+    let toastTimer;
+    function toast(msg, isErr = false) {
+      const el = $('toast');
+      el.textContent = msg;
+      el.classList.toggle('err', isErr);
+      el.classList.add('show');
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => el.classList.remove('show'), 3500);
+    }
+
+    // ── API fetch wrapper ──────────────────────────────────────────────────────
+    async function api(path, method = 'GET', body) {
+      const opts = {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+      };
+      if (body) opts.body = JSON.stringify(body);
+
+      const res = await fetch(API + path, opts);
+      const json = await res.json().catch(() => ({}));
+
+      if (!res.ok) {
+        throw new Error(json.detail ?? `HTTP ${res.status}`);
+      }
+      return json;
+    }
+
+    // ── UUID generator ─────────────────────────────────────────────────────────
+    function generateUUID() {
+      return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
+        const r = Math.random() * 16 | 0;
+        return (c === 'x' ? r : (r & 0x3 | 0x8)).toString(16);
+      });
+    }
+  </script>
+</body>
+
+</html>
