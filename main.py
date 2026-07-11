@@ -133,10 +133,6 @@ def serve_ui() -> FileResponse:
     """Serve the HTML frontend at the root URL."""
     return FileResponse(_BASE_DIR / "index.html")
 
-# Mount static files (CSS/JS/assets if added later)
-app.mount("/static", StaticFiles(directory=str(_BASE_DIR)), name="static")
-
-
 @app.get("/health", tags=["ops"])
 def health() -> dict[str, str]:
     """Liveness check. Does not probe external agent APIs — those can fail
