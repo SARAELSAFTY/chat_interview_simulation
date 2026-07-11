@@ -203,8 +203,8 @@ MAX_TAGS_IN_PROMPT = 100  # Cap tag index to prevent prompt bloat
 | Setting | Default | Purpose |
 |---------|---------|---------|
 | `GROQ_API_KEY` | — | **Required**. Groq API authentication |
-| `INTERVIEWER_MODEL` | `mixtral-8x7b-32768` | LLM for question generation |
-| `EVALUATOR_MODEL` | `mixtral-8x7b-32768` | LLM for review generation |
+| `INTERVIEWER_MODEL` | `openai/gpt-oss-120b` | LLM for question generation |
+| `EVALUATOR_MODEL` | `openai/gpt-oss-20b` | LLM for review generation |
 | `INTERVIEWER_MAX_TOKENS` | `1024` | Max output tokens per question |
 | `MAX_TAGS_IN_PROMPT` | `100` | Tag index size limit (prevents prompt bloat) |
 | `AGENT_MAX_ATTEMPTS` | `3` | Retry attempts on transient failures |
