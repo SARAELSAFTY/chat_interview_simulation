@@ -50,7 +50,6 @@ class InterviewerContext(BaseModel):
     remaining_soft: int
     current_session_tags: list[str]     # tags used so far this session
     all_time_tags: list[str]            # user's full deduplicated tag index
-    recent_sessions: list[dict[str, Any]]   # last N completed sessions (summaries)
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -106,9 +105,6 @@ def _build_prompt(ctx: InterviewerContext) -> str:
         ", ".join(ctx.all_time_tags) if ctx.all_time_tags else "(no prior history)"
     )
 
-    # Compact JSON of recent sessions (pretty but capped)
-    recent_json = json.dumps(ctx.recent_sessions, indent=2, ensure_ascii=False)
-
     return _PROMPT_TEMPLATE.format(
         field=ctx.field,
         level=ctx.level,
@@ -120,8 +116,6 @@ def _build_prompt(ctx: InterviewerContext) -> str:
         remaining_soft=ctx.remaining_soft,
         current_session_tags=session_tags_str,
         all_time_tags=all_time_tags_str,
-        recent_session_count=len(ctx.recent_sessions),
-        recent_sessions_json=recent_json,
         difficulty_label=difficulty_label,
     )
 

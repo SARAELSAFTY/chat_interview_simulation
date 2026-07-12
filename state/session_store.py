@@ -18,9 +18,6 @@ _tag_index: dict[str, list[str]] = defaultdict(list)
 # { user_id (str) -> list[session_id (str)] } — in chronological order
 _user_sessions: dict[str, list[str]] = defaultdict(list)
 
-# How many completed sessions to include in the Interviewer's context window.
-RECENT_SESSION_WINDOW = 2
-
 # Starting point on the 1-5 difficulty scale for each experience level.
 # Without this, every session started at the same "medium" difficulty
 # regardless of the level the user picked.
@@ -140,11 +137,13 @@ def append_turn(
 
 
 def mark_session_complete(session_id: str, review: dict[str, Any]) -> None:
-    """Mark the session complete and attach the Evaluator's review."""
+    """Mark the session complete, attach review, and delete transcript to save storage."""
     session = require_session(session_id)
     session["status"] = "complete"
     session["completed_at"] = _utcnow()
     session["review"] = review
+    # ← DELETE TRANSCRIPT (tags already merged into _tag_index)
+    session["turns"] = []
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -153,25 +152,12 @@ def mark_session_complete(session_id: str, review: dict[str, Any]) -> None:
 
 def get_recent_completed_sessions(
     user_id: str,
-    n: int = RECENT_SESSION_WINDOW,
 ) -> list[dict[str, Any]]:
     """
-    Return the last `n` *completed* sessions for this user in chronological
-    order, each as a lightweight summary dict safe to inject into a prompt.
-
-    Only completed sessions are included — in-progress sessions never appear
-    in the Interviewer's historical context.
+    Returns empty list. Tag history alone is sufficient for deduplication.
+    Transcripts deleted after mark_session_complete() to save storage.
     """
-    all_ids = _user_sessions.get(user_id, [])
-    completed = [
-        _sessions[sid]
-        for sid in reversed(all_ids)           # newest first …
-        if sid in _sessions
-        and _sessions[sid]["status"] == "complete"
-    ][:n]                                       # … take only n
-    completed.reverse()                         # back to chronological order
-
-    return [_session_to_context_summary(s) for s in completed]
+    return []
 
 
 def get_tag_index(user_id: str, max_tags: int | None = None) -> list[str]:

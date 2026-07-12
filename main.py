@@ -519,7 +519,6 @@ def _build_interviewer_context(session: dict[str, Any], category: str) -> Interv
     This is where the history/tag strategy from §6.1 is implemented:
       • current_session_tags  — tags used so far THIS session (mid-session dedup)
       • all_time_tags          — full deduplicated tag index (all-time dedup)
-      • recent_sessions        — last 2 completed sessions (full transcript window)
     """
     session_id = session["session_id"]
     user_id = session["user_id"]
@@ -527,9 +526,6 @@ def _build_interviewer_context(session: dict[str, Any], category: str) -> Interv
     # ── Tag context ───────────────────────────────────────────────────────────
     current_tags = store.get_used_tags_current_session(session_id)
     all_tags = store.get_tag_index(user_id, max_tags=config.MAX_TAGS_IN_PROMPT)
-
-    # ── Recent session transcripts ────────────────────────────────────────────
-    recent_sessions = store.get_recent_completed_sessions(user_id)
 
     # ── Remaining counts ──────────────────────────────────────────────────────
     seq = session["_question_sequence"]
@@ -550,7 +546,6 @@ def _build_interviewer_context(session: dict[str, Any], category: str) -> Interv
         remaining_soft=remaining_soft,
         current_session_tags=current_tags,
         all_time_tags=all_tags,
-        recent_sessions=recent_sessions,
     )
 
 
